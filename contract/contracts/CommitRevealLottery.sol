@@ -10,6 +10,7 @@ contract CommitRevealLottery is Ownable {
   struct Player {
     bytes32 commitment;
     uint256 guess;
+    bool isReveal;
   }
 
   EnumerableSet.AddressSet private players;
@@ -37,16 +38,18 @@ contract CommitRevealLottery is Ownable {
 
   function commit(bytes32 _commitment) public payable {
     require(msg.value == ticketPrice, 'Incorrect ticket price.');
+    require(roundStarted, " Round is not started");
     require(block.timestamp < roundEndTimestamp, 'The commit phase has ended.');
     require(playerData[msg.sender].commitment == 0, 'Already committed.');
 
-    playerData[msg.sender] = Player(_commitment, 0);
+    playerData[msg.sender] = Player(_commitment, 0, false);
     players.add(msg.sender);
 
     emit TicketPurchased(msg.sender, _commitment);
   }
 
   function reveal(uint256 _guess, bytes32 _blindingFactor) public {
+    require(roundStarted, " Round is not started");
     require(block.timestamp >= roundEndTimestamp, 'The reveal phase has not started.');
     require(block.timestamp < revealEndTimestamp, 'The reveal phase has ended.');
     require(playerData[msg.sender].commitment != 0, 'No commitment found.');
@@ -56,11 +59,13 @@ contract CommitRevealLottery is Ownable {
     );
 
     playerData[msg.sender].guess = _guess;
+    playerData[msg.sender].isReveal = true;
   }
 
   function drawWinner() public onlyOwner {
     require(block.timestamp >= revealEndTimestamp, 'The reveal phase is not over yet.');
     require(players.length() > 0, 'No players in the game.');
+    require(roundStarted, " Round is not started");
 
     uint256 winningNumber = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty))) % players.length();
     address winner;
@@ -69,6 +74,7 @@ contract CommitRevealLottery is Ownable {
     for (uint256 i = 0; i < players.length(); i++) {
       address player = players.at(i);
       uint256 guess = playerData[player].guess;
+      if (!playerData[player].isReveal) continue;
       uint256 diff = guess > winningNumber ? guess - winningNumber : winningNumber - guess;
       if (diff < minDiff) {
         minDiff = diff;
