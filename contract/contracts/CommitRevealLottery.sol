@@ -25,17 +25,13 @@ contract CommitRevealLottery is Ownable {
 
   constructor(
     address initialOwner,
-    uint256 _ticketPrice,
-    uint256 _roundDuration,
-    uint256 _revealDuration
+    uint256 _ticketPrice
   ) Ownable(initialOwner) {
     ticketPrice = _ticketPrice;
-    roundEndTimestamp = block.timestamp + _roundDuration;
-    revealEndTimestamp = roundEndTimestamp + _revealDuration;
-    roundStarted = true;
   }
 
   function commit(bytes32 _commitment) public payable {
+    require(roundStarted, 'Round has not started');
     require(msg.value == ticketPrice, 'Incorrect ticket price.');
     require(block.timestamp < roundEndTimestamp, 'The commit phase has ended.');
     require(playerData[msg.sender].commitment == 0, 'Already committed.');
@@ -47,6 +43,7 @@ contract CommitRevealLottery is Ownable {
   }
 
   function reveal(uint256 _guess, bytes32 _blindingFactor) public {
+    require(roundStarted, 'Round has not started');
     require(block.timestamp >= roundEndTimestamp, 'The reveal phase has not started.');
     require(block.timestamp < revealEndTimestamp, 'The reveal phase has ended.');
     require(playerData[msg.sender].commitment != 0, 'No commitment found.');
@@ -80,22 +77,27 @@ contract CommitRevealLottery is Ownable {
     payable(winner).transfer(address(this).balance);
     emit WinnerSelected(winner);
 
-    // Reset the game
-    for (uint256 i = 0; i < players.length(); i++) {
-      address player = players.at(i);
-      delete playerData[player];
-    }
-    // Clear the set of players
-    while (players.length() > 0) {
-      players.remove(players.at(0));
-    }
+    delete recentWinner;
     roundStarted = false;
   }
 
   function startNewRound(uint256 _roundDuration, uint256 _revealDuration) public onlyOwner {
     require(!roundStarted, 'Previous round is still ongoing.');
+
+    // Reset the game
+    for (uint256 i = 0; i < players.length(); i++) {
+      address player = players.at(i);
+      delete playerData[player];
+    }
+
+    // Clear the set of players
+    while (players.length() > 0) {
+      players.remove(players.at(0));
+    }
+
     roundEndTimestamp = block.timestamp + _roundDuration;
     revealEndTimestamp = roundEndTimestamp + _revealDuration;
+
     roundStarted = true;
   }
 

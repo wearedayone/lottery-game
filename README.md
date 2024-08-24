@@ -21,3 +21,16 @@
 
 3. Note:
 - Free to deploy smart contract to any other L1/L2 chain
+
+4. Frontend improvements
+- Add styling library such as Material Design
+- Organize styling/css into styling components
+- Separate codebase into multiple components - components/button, components/input etc...
+- Add Typescript to support typings
+- Separate wallet connectivity functionalities to separate service
+- Organize codebase in multiple components - PlayerActions, Game Stats, Results
+- Cover all components and functionalities with unit & e2e tests
+- Add CI/CD scripts automate build and deployment steps
+
+5. Game admin improvements
+- Consider creating UI for admin controls of the Game
