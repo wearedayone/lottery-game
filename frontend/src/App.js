@@ -52,7 +52,7 @@ function App() {
     const contractWithSigner = contract.connect(signer);
     try {
       const comm = ethers.solidityPackedKeccak256(["uint256", "bytes32"], [guess, ethers.encodeBytes32String(blindingFactor)]);
-      await contractWithSigner.commit(comm, { value: ethers.parseEther("0.1") });
+      await contractWithSigner.commit(comm, { value: ethers.parseEther("0.001") });
       setCommitment(comm);
       setMessage('Commitment submitted successfully!');
       loadContractData();

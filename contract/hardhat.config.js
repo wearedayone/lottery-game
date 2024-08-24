@@ -34,7 +34,7 @@ module.exports = {
     },
     eth_sepolia: {
       url: 'https://ethereum-sepolia.blockpi.network/v1/rpc/public',
-      accounts: ['xxxx'], // Replace by privateKey
+      accounts: ['a8d5b0560ee898df7044f3ca0314384de2e6e69b508a40ae92d1cc71688ec2f5'], // Replace by privateKey
       // gasPrice: 15000000000,
     },
   },
